@@ -1,0 +1,15 @@
+apiVersion: v2
+name: infra-troubleshooting-agent
+description: AI Infrastructure Troubleshooting Agent - An Agentic AI SRE Assistant for Kubernetes
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - kubernetes
+  - ai
+  - sre
+  - troubleshooting
+  - llm
+  - observability
+maintainers:
+  - name: AI Infrastructure Team

@@ -1,0 +1,93 @@
+version: "3.9"
+
+services:
+  # Main API service
+  agent-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: infra-agent-api
+    ports:
+      - "8000:8000"
+    environment:
+      - AGENT_LLM_PROVIDER=openai
+      - AGENT_LLM_MODEL=gpt-4
+      - AGENT_LLM_BASE_URL=http://llm-server:8080/v1
+      - AGENT_LLM_API_KEY=${LLM_API_KEY:-not-set}
+      - AGENT_K8S_IN_CLUSTER=false
+      - AGENT_PROMETHEUS_URL=http://prometheus:9090
+      - AGENT_CHROMA_PERSIST_DIR=/data/chroma
+      - AGENT_LOG_LEVEL=INFO
+      - AGENT_LOG_FORMAT=json
+    volumes:
+      - chroma_data:/data/chroma
+      - ${KUBECONFIG:-~/.kube/config}:/home/agent/.kube/config:ro
+    depends_on:
+      - chromadb
+    networks:
+      - agent-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ChromaDB vector database
+  chromadb:
+    image: chromadb/chroma:0.5.0
+    container_name: infra-agent-chromadb
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - ANONYMIZED_TELEMETRY=false
+    networks:
+      - agent-network
+    restart: unless-stopped
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: infra-agent-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deployment/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=7d"
+    networks:
+      - agent-network
+    restart: unless-stopped
+
+  # Grafana for dashboards (optional)
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: infra-agent-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - agent-network
+    restart: unless-stopped
+
+volumes:
+  chroma_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  agent-network:
+    driver: bridge

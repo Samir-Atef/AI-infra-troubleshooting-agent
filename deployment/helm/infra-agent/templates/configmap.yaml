@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "infra-agent.fullname" . }}-config
+  labels:
+    {{- include "infra-agent.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+data:
+  AGENT_APP_NAME: {{ .Values.config.llmProvider | default "AI Infrastructure Troubleshooting Agent" | quote }}
+  AGENT_LLM_PROVIDER: {{ .Values.config.llmProvider | quote }}
+  AGENT_LLM_MODEL: {{ .Values.config.llmModel | quote }}
+  AGENT_LLM_BASE_URL: {{ .Values.config.llmBaseUrl | quote }}
+  AGENT_LLM_TEMPERATURE: {{ .Values.config.llmTemperature | quote }}
+  AGENT_LLM_MAX_TOKENS: {{ .Values.config.llmMaxTokens | quote }}
+  AGENT_K8S_IN_CLUSTER: {{ .Values.config.k8sInCluster | quote }}
+  AGENT_K8S_DEFAULT_NAMESPACE: {{ .Values.config.k8sDefaultNamespace | quote }}
+  AGENT_PROMETHEUS_URL: {{ .Values.config.prometheusUrl | quote }}
+  AGENT_PROMETHEUS_TIMEOUT: {{ .Values.config.prometheusTimeout | quote }}
+  AGENT_VECTOR_DB_TYPE: {{ .Values.config.vectorDbType | quote }}
+  AGENT_CHROMA_PERSIST_DIR: {{ .Values.config.chromaPersistDir | quote }}
+  AGENT_CHROMA_COLLECTION_NAME: {{ .Values.config.chromaCollectionName | quote }}
+  AGENT_LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  AGENT_LOG_FORMAT: {{ .Values.config.logFormat | quote }}
+  AGENT_METRICS_ENABLED: {{ .Values.config.metricsEnabled | quote }}
+  AGENT_ENABLE_RBAC: {{ .Values.config.enableRbac | quote }}

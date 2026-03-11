@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: infra-agent-api
+  namespace: infra-agent
+  labels:
+    app.kubernetes.io/name: infra-troubleshooting-agent
+    app.kubernetes.io/component: api
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: infra-troubleshooting-agent
+    app.kubernetes.io/component: api

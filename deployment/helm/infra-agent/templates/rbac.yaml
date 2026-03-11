@@ -1,0 +1,58 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "infra-agent.fullname" . }}-reader
+  labels:
+    {{- include "infra-agent.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods
+      - pods/log
+      - services
+      - endpoints
+      - events
+      - configmaps
+      - nodes
+      - namespaces
+      - persistentvolumeclaims
+      - persistentvolumes
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+      - replicasets
+      - statefulsets
+      - daemonsets
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources:
+      - ingresses
+      - networkpolicies
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["autoscaling"]
+    resources:
+      - horizontalpodautoscalers
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources:
+      - jobs
+      - cronjobs
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "infra-agent.fullname" . }}-reader-binding
+  labels:
+    {{- include "infra-agent.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "infra-agent.fullname" . }}-reader
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "infra-agent.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}
